@@ -1,5 +1,7 @@
 package com.golfdiary.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +15,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User implements UserDetails {
     
     @Id
@@ -31,6 +34,7 @@ public class User implements UserDetails {
     
     @NotBlank
     @Size(min = 6)
+    @JsonIgnore
     private String password;
     
     @Column(name = "first_name")

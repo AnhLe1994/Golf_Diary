@@ -28,12 +28,21 @@ public class LessonController {
         this.userService = userService;
     }
 
-    // Get all published lessons (for students)
+    // Get all lessons (for students) - showing both published and unpublished
     @GetMapping
-    public ResponseEntity<List<Lesson>> getAllPublishedLessons() {
+    public ResponseEntity<List<Lesson>> getAllLessons() {
         System.out.println("GET /api/lessons - Accessing lessons endpoint");
-        List<Lesson> lessons = lessonService.getAllPublishedLessons();
-        System.out.println("Found " + lessons.size() + " published lessons");
+        List<Lesson> lessons = lessonService.getAllLessons();
+        System.out.println("Found " + lessons.size() + " total lessons");
+        
+        // Debug: Print details of each lesson
+        for (Lesson lesson : lessons) {
+            System.out.println("Lesson ID: " + lesson.getId() + 
+                             ", Title: " + lesson.getTitle() + 
+                             ", Published: " + lesson.isPublished() + 
+                             ", Instructor: " + (lesson.getInstructor() != null ? lesson.getInstructor().getUsername() : "null"));
+        }
+        
         return ResponseEntity.ok(lessons);
     }
 
@@ -79,15 +88,25 @@ public class LessonController {
 
     @GetMapping("/instructor")
     public ResponseEntity<List<Lesson>> getInstructorLessons() {
+        System.out.println("GET /api/lessons/instructor - Accessing instructor lessons endpoint");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
+        System.out.println("Authenticated username: " + username);
         User user = userService.findByUsername(username).orElse(null);
         
-        if (user == null || user.getRole() != UserRole.INSTRUCTOR) {
+        if (user == null) {
+            System.out.println("User not found for username: " + username);
+            return ResponseEntity.status(403).build();
+        }
+        
+        System.out.println("User role: " + user.getRole());
+        if (user.getRole() != UserRole.INSTRUCTOR) {
+            System.out.println("User is not an instructor");
             return ResponseEntity.status(403).build();
         }
         
         List<Lesson> lessons = lessonService.getLessonsByInstructor(user);
+        System.out.println("Found " + lessons.size() + " lessons for instructor");
         return ResponseEntity.ok(lessons);
     }
 
@@ -170,5 +189,32 @@ public class LessonController {
     public ResponseEntity<String> test() {
         System.out.println("GET /api/lessons/test - Test endpoint accessed");
         return ResponseEntity.ok("Lessons controller is working!");
+    }
+    
+    // Simple public test endpoint
+    @GetMapping("/public-test")
+    public ResponseEntity<String> publicTest() {
+        System.out.println("GET /api/lessons/public-test - Public test endpoint accessed");
+        return ResponseEntity.ok("Public lessons endpoint is working!");
+    }
+    
+    // Debug endpoint to check database state
+    @GetMapping("/debug")
+    public ResponseEntity<String> debug() {
+        System.out.println("GET /api/lessons/debug - Debug endpoint accessed");
+        
+        long totalLessons = lessonService.getAllLessons().size();
+        long publishedLessons = lessonService.getAllPublishedLessons().size();
+        
+        String debugInfo = String.format(
+            "Database Debug Info:\n" +
+            "Total lessons in database: %d\n" +
+            "Published lessons: %d\n" +
+            "Unpublished lessons: %d",
+            totalLessons, publishedLessons, totalLessons - publishedLessons
+        );
+        
+        System.out.println(debugInfo);
+        return ResponseEntity.ok(debugInfo);
     }
 } 

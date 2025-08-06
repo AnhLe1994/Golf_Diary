@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { lessonsAPI } from '../services/api';
+import { publicLessonsAPI } from '../services/publicApi';
 
 const StudentDashboard = () => {
   const [lessons, setLessons] = useState([]);
@@ -26,22 +26,27 @@ const StudentDashboard = () => {
         console.log('User Role:', localStorage.getItem('user_role'));
         
         // Fetch lessons from the real MySQL database via API
-        const lessonsData = await lessonsAPI.getLessons();
+        const lessonsData = await publicLessonsAPI.getLessons();
         
         console.log('Raw lessons response from database:', lessonsData);
         console.log('Lessons data type:', typeof lessonsData);
         console.log('Lessons is array:', Array.isArray(lessonsData));
         console.log('Lessons array length:', lessonsData?.length || 0);
         
-        // Filter only published lessons (this should be done on the backend, but we'll do it here for now)
-        const publishedLessons = Array.isArray(lessonsData) 
-          ? lessonsData.filter(lesson => lesson.isPublished === true)
-          : [];
+        // Debug: Log the first lesson structure if available
+        if (Array.isArray(lessonsData) && lessonsData.length > 0) {
+          console.log('First lesson structure:', lessonsData[0]);
+          console.log('First lesson published field:', lessonsData[0].published);
+          console.log('First lesson isPublished field:', lessonsData[0].isPublished);
+        }
         
-        console.log('Published lessons from database:', publishedLessons);
-        console.log('Published lessons count:', publishedLessons.length);
+        // Show all lessons (both published and unpublished)
+        const allLessons = Array.isArray(lessonsData) ? lessonsData : [];
         
-        setLessons(publishedLessons);
+        console.log('All lessons from database:', allLessons);
+        console.log('Total lessons count:', allLessons.length);
+        
+        setLessons(allLessons);
         setGolfRounds([]); // For now, we'll keep golf rounds empty
       } catch (err) {
         console.error('Error fetching lessons from database:', err);
@@ -207,15 +212,15 @@ const StudentDashboard = () => {
                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                        </svg>
-                                               <h3 className="mt-2 text-sm font-medium text-gray-900">No lessons available</h3>
+                       <h3 className="mt-2 text-sm font-medium text-gray-900">No lessons available</h3>
                         <p className="mt-1 text-sm text-gray-500">
-                          No published lessons are currently available in the database. 
+                          No lessons are currently available in the database. 
                           <br />
-                          Lessons will appear here once instructors create and publish them.
+                          Lessons will appear here once instructors create them.
                         </p>
                         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                           <p className="text-sm text-blue-700">
-                            <strong>Note:</strong> Only published lessons from the MySQL database are shown here.
+                            <strong>Note:</strong> All lessons from the MySQL database are shown here, including both published and draft lessons.
                           </p>
                         </div>
                      </div>
@@ -247,6 +252,13 @@ const StudentDashboard = () => {
                                              </span>
                                              <span className="text-sm text-gray-500">
                                                {lesson.level}
+                                             </span>
+                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                               lesson.published 
+                                                 ? 'bg-green-100 text-green-800' 
+                                                 : 'bg-yellow-100 text-yellow-800'
+                                             }`}>
+                                               {lesson.published ? 'Published' : 'Draft'}
                                              </span>
                                            </div>
                                          </div>

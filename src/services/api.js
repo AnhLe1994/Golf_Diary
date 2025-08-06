@@ -13,9 +13,14 @@ const api = axios.create({
 // Request interceptor to add JWT token to headers
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Don't add JWT token for public endpoints
+    const isPublicEndpoint = config.url === '/api/lessons' && config.method === 'get';
+    
+    if (!isPublicEndpoint) {
+      const token = localStorage.getItem('jwt_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -87,7 +92,11 @@ export const lessonsAPI = {
     return response.data;
   },
   getInstructorLessons: async () => {
+    console.log('API: Making request to /api/lessons/instructor');
+    console.log('API: JWT Token in localStorage:', localStorage.getItem('jwt_token'));
     const response = await api.get('/api/lessons/instructor');
+    console.log('API: Response status:', response.status);
+    console.log('API: Response data:', response.data);
     return response.data;
   },
   createLesson: async (lessonData) => {

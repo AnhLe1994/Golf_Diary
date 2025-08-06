@@ -26,6 +26,10 @@ public class LessonService {
         return lessonRepository.save(lesson);
     }
 
+    public List<Lesson> getAllLessons() {
+        return lessonRepository.findAll();
+    }
+
     public List<Lesson> getAllPublishedLessons() {
         return lessonRepository.findByIsPublishedTrueOrderByCreatedAtDesc();
     }

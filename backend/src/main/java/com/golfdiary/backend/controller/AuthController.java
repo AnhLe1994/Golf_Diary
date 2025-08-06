@@ -70,4 +70,18 @@ public class AuthController {
     public ResponseEntity<String> test() {
         return ResponseEntity.ok("Auth endpoint is working!");
     }
+    
+    @GetMapping("/check-user/{username}")
+    public ResponseEntity<String> checkUser(@PathVariable String username) {
+        try {
+            Optional<User> user = userService.findByUsername(username);
+            if (user.isPresent()) {
+                return ResponseEntity.ok("User " + username + " exists with role: " + user.get().getRole());
+            } else {
+                return ResponseEntity.ok("User " + username + " does not exist");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.ok("Error checking user: " + e.getMessage());
+        }
+    }
 } 
